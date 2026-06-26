@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Command Center - PUPR Kab. Garut</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        puprBlue: '#1e3a8a',
+                        puprYellow: '#f59e0b',
+                        darkBg: '#0b1120',
+                    },
+                    animation: {
+                        'spin-slow': 'spin 3s linear infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
+
+        /* Premium Glassmorphism */
+        .glass {
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        .glass-card {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.4) 100%);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-card:hover {
+            background: linear-gradient(145deg, rgba(51, 65, 85, 0.7) 0%, rgba(30, 41, 59, 0.5) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        /* Abstract Animated Orbs */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            animation: orbFloat 15s infinite ease-in-out alternate;
+        }
+        
+        @keyframes orbFloat {
+            0% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+
+        /* View Transitions (Smooth SPA) */
+        .view-section {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px) scale(0.98);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        
+        .view-section.active {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Staggered Entry Animations */
+        .stagger-1 { animation: slideUpFade 0.6s ease forwards; animation-delay: 0.1s; opacity: 0; }
+        .stagger-2 { animation: slideUpFade 0.6s ease forwards; animation-delay: 0.2s; opacity: 0; }
+        .stagger-3 { animation: slideUpFade 0.6s ease forwards; animation-delay: 0.3s; opacity: 0; }
+        .stagger-4 { animation: slideUpFade 0.6s ease forwards; animation-delay: 0.4s; opacity: 0; }
+
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Shimmer Effect for Buttons */
+        .shimmer-btn {
+            position: relative;
+            overflow: hidden;
+        }
+        .shimmer-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(to bottom right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
+            transform: rotate(45deg) translateY(-100%);
+            transition: transform 0.6s;
+        }
+        .shimmer-btn:hover::after {
+            transform: rotate(45deg) translateY(100%);
+        }
+
+        /* Preloader Styles */
+        #preloader {
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+        .loader-ring {
+            border: 3px solid transparent;
+            border-top-color: #3b82f6; /* Blue */
+            border-right-color: #f59e0b; /* Yellow */
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        .progress-bar-inner {
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-darkBg text-slate-100 min-h-screen font-sans overflow-x-hidden selection:bg-blue-500/30">
+
+    <!-- ================= PRELOADER ================= -->
+    <div id="preloader" class="fixed inset-0 z-[9999] bg-darkBg flex flex-col items-center justify-center">
+        <div class="relative w-24 h-24 mb-6">
+            <div class="absolute inset-0 loader-ring"></div>
+            <div class="absolute inset-2 loader-ring border-t-yellow-400 border-r-blue-400 animation-reverse text-transparent animate-[spin_1.5s_linear_infinite_reverse]"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+                <i data-lucide="building-2" class="w-8 h-8 text-white"></i>
+            </div>
+        </div>
+        <h2 class="text-2xl font-bold tracking-widest text-white mb-2">COMMAND CENTER</h2>
+        <p class="text-sm text-slate-400 tracking-widest mb-8">PUPR KAB. GARUT</p>
+        <div class="w-48 h-1 bg-slate-800 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-blue-500 to-yellow-400 w-0 animate-[fillProgress_1.5s_ease-out_forwards]"></div>
+        </div>
+    </div>
+    
+    <style>
+        @keyframes fillProgress { from { width: 0%; } to { width: 100%; } }
+    </style>
+
+    <!-- ================= BACKGROUND ELEMENTS ================= -->
+    <div class="fixed inset-0 z-[-2] bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950"></div>
+    <div class="orb bg-blue-600/20 w-[40rem] h-[40rem] top-[-20%] left-[-10%]"></div>
+    <div class="orb bg-indigo-600/15 w-[35rem] h-[35rem] bottom-[-10%] right-[-10%]" style="animation-delay: -5s;"></div>
+    <div class="orb bg-yellow-500/5 w-96 h-96 top-[40%] left-[30%]" style="animation-delay: -10s;"></div>
+
+    <!-- ================= NAVBAR ================= -->
+    <nav class="fixed top-0 w-full z-50 glass border-b border-white/5 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo & Title -->
+                <div class="flex items-center gap-4 cursor-pointer group" onclick="navigate('home')">
+                    <div class="relative bg-white/5 p-2.5 rounded-xl border border-white/10 group-hover:bg-white/10 transition-colors">
+                        <i data-lucide="building-2" class="w-7 h-7 text-puprYellow relative z-10 group-hover:scale-110 transition-transform duration-300"></i>
+                        <div class="absolute inset-0 bg-yellow-500/20 blur-md rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold tracking-wider text-white group-hover:text-blue-200 transition-colors">COMMAND CENTER</h1>
+                        <p class="text-xs text-slate-400 font-medium">Bidang Bangunan PUPR Garut</p>
+                    </div>
+                </div>
+                
+                <!-- Live Clock -->
+                <div class="hidden md:flex items-center gap-6">
+                    <div class="flex flex-col items-end">
+                        <div id="live-time" class="text-xl font-bold text-white tracking-widest tabular-nums">00:00:00</div>
+                        <div id="live-date" class="text-xs text-slate-400 font-medium tracking-wide">Memuat...</div>
+                    </div>
+                    <div class="h-10 w-px bg-white/10"></div>
+                    <div class="flex items-center gap-2 text-slate-300">
+                        <div class="relative flex h-3 w-3">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                        </div>
+                        <span class="text-xs font-semibold tracking-wider">SYSTEM ONLINE</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ================= MAIN LAYOUT ================= -->
+    <main class="pt-28 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-[90vh] flex flex-col relative z-10 overflow-hidden">
+        
+        <!-- ================= VIEW: HOME ================= -->
+        <div id="view-home" class="view-section active flex-col flex-1 w-full">
+            
+            <!-- Hero / Greeting Section -->
+            <div class="stagger-1 glass rounded-[2rem] p-8 md:p-10 mb-10 relative overflow-hidden border border-white/10 shadow-2xl">
+                <!-- Decorative background elements inside hero -->
+                <div class="absolute top-0 right-0 w-full h-full bg-gradient-to-l from-blue-600/10 to-transparent pointer-events-none"></div>
+                
+                <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-semibold tracking-wider mb-4">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> PORTAL TERPADU
+                        </div>
+                        <h2 class="text-4xl md:text-5xl font-extrabold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">
+                            <span id="greeting-text">Selamat Datang</span>,
+                        </h2>
+                        <p class="text-slate-300 max-w-2xl text-lg leading-relaxed font-light">
+                            Pusat kendali informasi terpadu untuk optimalisasi pengawasan penyelenggaraan bangunan gedung, bantuan teknis, dan pemantauan proyek di Kabupaten Garut.
+                        </p>
+                    </div>
+                    
+                    <div class="hidden lg:block">
+                        <div class="w-32 h-32 relative">
+                            <i data-lucide="radar" class="w-full h-full text-blue-500/20 animate-spin-slow"></i>
+                            <i data-lucide="activity" class="w-12 h-12 text-blue-400 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Menu Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+                
+                <!-- Card: SIMBG -->
+                <div onclick="navigate('simbg')" class="stagger-2 glass-card rounded-[1.5rem] p-7 cursor-pointer group flex flex-col h-full relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-6 opacity-5 transform translate-x-4 -translate-y-4 group-hover:scale-150 group-hover:-rotate-12 transition-all duration-700 pointer-events-none">
+                        <i data-lucide="layout-dashboard" class="w-32 h-32"></i>
+                    </div>
+                    
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/5 flex items-center justify-center border border-blue-400/20 mb-6 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] transition-all duration-300 relative z-10">
+                        <i data-lucide="layout-dashboard" class="w-7 h-7 text-blue-400"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3 text-white relative z-10">Monev SIMBG</h3>
+                    <p class="text-sm text-slate-400 mb-8 flex-1 leading-relaxed relative z-10 font-light">
+                        Sistem Informasi Manajemen Bangunan Gedung. Pantau progres perizinan, PBG, dan SLF secara real-time dan komprehensif.
+                    </p>
+                    <div class="flex items-center justify-between mt-auto relative z-10 border-t border-white/5 pt-4">
+                        <span class="text-xs font-bold text-blue-400 uppercase tracking-widest group-hover:text-blue-300 transition-colors">Akses Layanan</span>
+                        <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-blue-500/20 group-hover:translate-x-2 transition-all duration-300">
+                            <i data-lucide="arrow-right" class="w-4 h-4 text-blue-400"></i>
+                        </div>
+                    </div>
+                    <!-- Hover Progress line -->
+                    <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-blue-400 to-blue-600 w-0 group-hover:w-full transition-all duration-500 ease-out"></div>
+                </div>
+
+                <!-- Card: Bantek -->
+                <div onclick="navigate('bantek')" class="stagger-3 glass-card rounded-[1.5rem] p-7 cursor-pointer group flex flex-col h-full relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-6 opacity-5 transform translate-x-4 -translate-y-4 group-hover:scale-150 group-hover:-rotate-12 transition-all duration-700 pointer-events-none">
+                        <i data-lucide="hard-hat" class="w-32 h-32"></i>
+                    </div>
+
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-500/20 to-yellow-600/5 flex items-center justify-center border border-yellow-400/20 mb-6 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(245,158,11,0.3)] transition-all duration-300 relative z-10">
+                        <i data-lucide="hard-hat" class="w-7 h-7 text-yellow-400"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3 text-white relative z-10">Monev Bantek</h3>
+                    <p class="text-sm text-slate-400 mb-8 flex-1 leading-relaxed relative z-10 font-light">
+                        Monitoring dan Evaluasi Bantuan Teknis. Evaluasi kelaikan dan pengawasan teknis bangunan gedung daerah.
+                    </p>
+                    <div class="flex items-center justify-between mt-auto relative z-10 border-t border-white/5 pt-4">
+                        <span class="text-xs font-bold text-yellow-400 uppercase tracking-widest group-hover:text-yellow-300 transition-colors">Akses Layanan</span>
+                        <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-yellow-500/20 group-hover:translate-x-2 transition-all duration-300">
+                            <i data-lucide="arrow-right" class="w-4 h-4 text-yellow-400"></i>
+                        </div>
+                    </div>
+                     <!-- Hover Progress line -->
+                     <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-yellow-400 to-orange-500 w-0 group-hover:w-full transition-all duration-500 ease-out"></div>
+                </div>
+
+                <!-- Card: Proyek -->
+                <div onclick="navigate('proyek')" class="stagger-4 glass-card rounded-[1.5rem] p-7 cursor-pointer group flex flex-col h-full relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-6 opacity-5 transform translate-x-4 -translate-y-4 group-hover:scale-150 group-hover:-rotate-12 transition-all duration-700 pointer-events-none">
+                        <i data-lucide="construction" class="w-32 h-32"></i>
+                    </div>
+
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/5 flex items-center justify-center border border-emerald-400/20 mb-6 group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all duration-300 relative z-10">
+                        <i data-lucide="construction" class="w-7 h-7 text-emerald-400"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-3 text-white relative z-10">Monev Proyek</h3>
+                    <p class="text-sm text-slate-400 mb-8 flex-1 leading-relaxed relative z-10 font-light">
+                        Pemantauan terintegrasi untuk kemajuan fisik, serapan anggaran, dan dokumentasi proyek pembangunan fisik.
+                    </p>
+                    <div class="flex items-center justify-between mt-auto relative z-10 border-t border-white/5 pt-4">
+                        <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest group-hover:text-emerald-300 transition-colors">Akses Layanan</span>
+                        <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-emerald-500/20 group-hover:translate-x-2 transition-all duration-300">
+                            <i data-lucide="arrow-right" class="w-4 h-4 text-emerald-400"></i>
+                        </div>
+                    </div>
+                     <!-- Hover Progress line -->
+                     <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-emerald-400 to-emerald-600 w-0 group-hover:w-full transition-all duration-500 ease-out"></div>
+                </div>
+
+            </div>
+        </div>
+        <!-- ================= END VIEW: HOME ================= -->
+
+
+        <!-- ================= VIEW: SIMBG ================= -->
+        <div id="view-simbg" class="view-section flex-col flex-1 w-full h-full">
+            
+            <!-- Dashboard Header -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4 bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-md">
+                <div class="flex items-center gap-4">
+                    <button onclick="navigate('home')" class="shimmer-btn bg-white/10 p-2.5 rounded-xl hover:bg-white/20 transition-all border border-white/10 group">
+                        <i data-lucide="arrow-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
+                    </button>
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i data-lucide="layout-dashboard" class="w-5 h-5 text-blue-400"></i> Dashboard SIMBG
+                        </h2>
+                        <p class="text-xs text-slate-400">Sistem Informasi Manajemen Bangunan Gedung</p>
+                    </div>
+                </div>
+                <a href="https://datastudio.google.com/u/0/reporting/aa5defde-e1e9-496b-8b32-122ae931dfa1/page/page_12345" target="_blank" class="shimmer-btn bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl transition-colors flex items-center gap-2 text-sm font-semibold shadow-lg shadow-blue-500/20 w-full sm:w-auto justify-center">
+                    Buka Layar Penuh <i data-lucide="external-link" class="w-4 h-4"></i>
+                </a>
+            </div>
+            
+            <!-- Iframe Container -->
+            <div class="glass rounded-[2rem] flex-1 w-full min-h-[75vh] relative overflow-hidden border border-white/10 shadow-2xl">
+				<iframe 
+					src="https://datastudio.google.com/embed/reporting/aa5defde-e1e9-496b-8b32-122ae931dfa1/page/page_12345" 
+					frameborder="0" 
+					style="border:0" 
+					allowfullscreen 
+					sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+					class="w-full h-full absolute inset-0 z-10 bg-transparent rounded-[2rem]">
+				</iframe>
+            </div>
+        </div>
+        <!-- ================= END VIEW: SIMBG ================= -->
+
+
+        <!-- ================= VIEW: BANTEK ================= -->
+        <div id="view-bantek" class="view-section flex-col flex-1 w-full h-full">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4 bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-md">
+                <div class="flex items-center gap-4">
+                    <button onclick="navigate('home')" class="shimmer-btn bg-white/10 p-2.5 rounded-xl hover:bg-white/20 transition-all border border-white/10 group">
+                        <i data-lucide="arrow-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
+                    </button>
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i data-lucide="hard-hat" class="w-5 h-5 text-yellow-400"></i> Dashboard Bantek
+                        </h2>
+                        <p class="text-xs text-slate-400">Monitoring Evaluasi Bantuan Teknis</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass rounded-[2rem] flex-1 w-full min-h-[70vh] flex flex-col items-center justify-center text-center p-8 relative overflow-hidden">
+                <!-- Watermark icon -->
+                <i data-lucide="tools" class="absolute text-white/[0.02] w-96 h-96 -right-10 -bottom-10 pointer-events-none"></i>
+                
+                <div class="w-24 h-24 bg-gradient-to-br from-yellow-500/20 to-orange-500/10 rounded-3xl flex items-center justify-center border border-yellow-500/30 mb-8 shadow-[0_0_30px_rgba(245,158,11,0.2)] animate-bounce" style="animation-duration: 3s;">
+                    <i data-lucide="cone" class="w-12 h-12 text-yellow-400"></i>
+                </div>
+                <h3 class="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">Modul Sedang Dikembangkan</h3>
+                <p class="text-slate-400 max-w-lg text-lg leading-relaxed">
+                    Dashboard analitik untuk <span class="text-white font-medium">Bantuan Teknis</span> saat ini sedang dalam tahap sinkronisasi dengan database pusat. Fitur ini akan segera tersedia.
+                </p>
+                <button onclick="navigate('home')" class="mt-10 shimmer-btn bg-white/5 hover:bg-white/10 border border-white/10 text-white px-6 py-3 rounded-xl transition-colors flex items-center gap-2 text-sm font-semibold">
+                    Kembali ke Beranda
+                </button>
+            </div>
+        </div>
+        <!-- ================= END VIEW: BANTEK ================= -->
+
+
+        <!-- ================= VIEW: PROYEK ================= -->
+        <div id="view-proyek" class="view-section flex-col flex-1 w-full h-full">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4 bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-md">
+                <div class="flex items-center gap-4">
+                    <button onclick="navigate('home')" class="shimmer-btn bg-white/10 p-2.5 rounded-xl hover:bg-white/20 transition-all border border-white/10 group">
+                        <i data-lucide="arrow-left" class="w-5 h-5 group-hover:-translate-x-1 transition-transform"></i>
+                    </button>
+                    <div>
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <i data-lucide="construction" class="w-5 h-5 text-emerald-400"></i> Dashboard Proyek
+                        </h2>
+                        <p class="text-xs text-slate-400">Pemantauan Proyek Pembangunan Fisik</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass rounded-[2rem] flex-1 w-full min-h-[70vh] flex flex-col items-center justify-center text-center p-8 relative overflow-hidden">
+                <!-- Watermark icon -->
+                <i data-lucide="bar-chart-3" class="absolute text-white/[0.02] w-96 h-96 -left-10 -bottom-10 pointer-events-none"></i>
+                
+                <div class="w-24 h-24 bg-gradient-to-br from-emerald-500/20 to-teal-500/10 rounded-3xl flex items-center justify-center border border-emerald-500/30 mb-8 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
+                    <i data-lucide="bar-chart-4" class="w-12 h-12 text-emerald-400"></i>
+                </div>
+                <h3 class="text-3xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">Menunggu Tautan Data</h3>
+                <p class="text-slate-400 max-w-lg text-lg leading-relaxed">
+                    Ruang khusus untuk integrasi dashboard <span class="text-white font-medium">Pemantauan Proyek</span>. Silakan embed URL Looker Studio atau PowerBI Anda di dalam source code.
+                </p>
+                <button onclick="navigate('home')" class="mt-10 shimmer-btn bg-white/5 hover:bg-white/10 border border-white/10 text-white px-6 py-3 rounded-xl transition-colors flex items-center gap-2 text-sm font-semibold">
+                    Kembali ke Beranda
+                </button>
+            </div>
+        </div>
+        <!-- ================= END VIEW: PROYEK ================= -->
+
+    </main>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="relative z-10 border-t border-white/10 mt-auto bg-slate-900/50 backdrop-blur-lg">
+        <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p class="text-xs md:text-sm text-slate-400 font-medium">
+                &copy; <span id="current-year"></span> Bidang Bangunan, Dinas PUPR Kab. Garut.
+            </p>
+            <div class="flex items-center gap-4 text-xs text-slate-500">
+                <a href="#" class="hover:text-white transition-colors">Kebijakan Privasi</a>
+                <span>&bull;</span>
+                <a href="#" class="hover:text-white transition-colors">Bantuan Teknis</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ================= SCRIPTS ================= -->
+    <script>
+        // 1. Initialize Icons
+        lucide.createIcons();
+
+        // 2. Preloader Logic (Simulate app initialization)
+        window.addEventListener('load', () => {
+            const preloader = document.getElementById('preloader');
+            setTimeout(() => {
+                preloader.style.opacity = '0';
+                setTimeout(() => {
+                    preloader.style.display = 'none';
+                }, 800);
+            }, 1800); // 1.8 seconds loading screen
+        });
+
+        // 3. Dynamic Greeting Logic
+        function updateGreeting() {
+            const hour = new Date().getHours();
+            let greeting = 'Selamat Malam';
+            
+            if (hour >= 3 && hour < 11) greeting = 'Selamat Pagi';
+            else if (hour >= 11 && hour < 15) greeting = 'Selamat Siang';
+            else if (hour >= 15 && hour < 18) greeting = 'Selamat Sore';
+            
+            const greetingEl = document.getElementById('greeting-text');
+            if(greetingEl) greetingEl.textContent = greeting;
+        }
+
+        // 4. Live Clock Logic
+        function updateTime() {
+            const now = new Date();
+            
+            // Format Time (HH:MM:SS)
+            const timeString = now.toLocaleTimeString('id-ID', {
+                hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+            });
+            
+            // Format Date (Hari, Tanggal Bulan Tahun)
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            const dateString = now.toLocaleDateString('id-ID', options);
+            
+            const timeEl = document.getElementById('live-time');
+            const dateEl = document.getElementById('live-date');
+            
+            if(timeEl) timeEl.textContent = timeString;
+            if(dateEl) dateEl.textContent = dateString;
+        }
+
+        // 5. Smooth SPA Navigation
+        const views = ['home', 'simbg', 'bantek', 'proyek'];
+        
+        function navigate(targetViewId) {
+            // Temukan view yang sedang aktif
+            const activeView = document.querySelector('.view-section.active');
+            const targetView = document.getElementById(`view-${targetViewId}`);
+            
+            if (activeView === targetView) return; // Ignore jika klik menu yang sama
+
+            // Animasi keluar (Fade Out)
+            if (activeView) {
+                activeView.classList.remove('active');
+            }
+
+            // Tunggu sedikit agar animasi transisi terlihat, lalu tampilkan layar baru
+            setTimeout(() => {
+                targetView.classList.add('active');
+                
+                // Jika kembali ke home, picu ulang animasi stagger
+                if (targetViewId === 'home') {
+                    const staggers = targetView.querySelectorAll('[class*="stagger-"]');
+                    staggers.forEach(el => {
+                        el.style.animation = 'none';
+                        el.offsetHeight; /* trigger reflow */
+                        el.style.animation = null; 
+                    });
+                }
+                
+                // Scroll to top secara halus
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 300); // 300ms sesuai dengan durasi CSS transition
+        }
+
+        // 6. Navbar Scroll Effect (Glassmorphism solidifies on scroll)
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 20) {
+                nav.classList.add('bg-slate-900/80', 'shadow-lg');
+                nav.classList.remove('bg-transparent');
+            } else {
+                nav.classList.remove('bg-slate-900/80', 'shadow-lg');
+                nav.classList.add('bg-transparent');
+            }
+        });
+
+        // Initialize Everything
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        updateGreeting();
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>
